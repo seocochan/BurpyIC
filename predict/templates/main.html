@@ -1,0 +1,23 @@
+<!DOCTYPE>
+<html>
+    <head>
+        {% load static %}
+        <title>맞!춘!다!</title>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/main-css.css' %}" />
+    </head>
+    <body>
+    <div class = "header">
+        <h1>숫자 맞추는 친구</h1>
+    </div>
+    <div class = "subheader">
+        <h3>이 친구는 무료로 맞춰줍니다!</h3>
+    </div>
+    <div class = "con">
+        <form method = "post" action = "../result/" enctype = "multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="file" name="file" accept="image/*"/>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+    </body>
+</html>
