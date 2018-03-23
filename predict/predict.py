@@ -8,18 +8,22 @@ import os
 
 
 def imageProcess(image):
-    # 그레이 스케일 및 정규화
-    im = Image.open(image).convert('L')
-    im = im.resize((28, 28))
-    pixels = list(im.getdata())
+    # greyscal and normalization
+    im = image.convert('L')
+    
+    # Image resizing
+    im = im.resize((28, 28), Image.ANTIALIAS)
+    return im
+
+def datalization(image):
+    pixels = list(image.getdata())
     data = [(255 - x) * 1.0 / 255.0 for x in pixels]
     data = np.array(data)
     data = np.reshape(data, (1, 28, 28, 1))
-
     return data
 
 def CNNprediction(data):
-    # CNN
+    # CNN dir settings
     save_path = os.path.join(MODEL_DIR, 'CNNmodel')
 
     X = tf.placeholder(tf.float32, [None, 28, 28, 1])
