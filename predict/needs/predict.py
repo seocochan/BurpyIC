@@ -35,4 +35,3 @@ def inception_predict(image):
         return result
     else:
         return None
-

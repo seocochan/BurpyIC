@@ -1,0 +1,5 @@
+secrets.json
+model/training/
+model/retrain.py
+
+model/recommend

@@ -131,3 +131,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # model dir
 MODEL_DIR = os.path.join(BASE_DIR, 'model')
+
+# recommend dir
+REC_DIR = os.path.join(BASE_DIR, 'model', 'recommend')

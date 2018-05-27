@@ -4,9 +4,10 @@ from django.http import JsonResponse
 
 from predict.needs.processData import *
 from predict.needs.predict import *
+from predict.needs.recommendation import *
 from predict.needs.jsonProcess import *
 from predict.needs.exception import * 
-
+import json
 
 def inappropriate_access(request):
     return render(request, 'inappropriate.html', {})
@@ -26,47 +27,35 @@ def image_classification(request):
     
     return JsonResponse(result, safe=False)
 
+def on_recommend_train_data(request):
+    result = save_train_data(request.body)
+    result = encode_json(result)
+    return JsonResponse(result, safe=False)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-    im = request.FILES.get('file')
-    name = im.name
-
-    # Use the following code if you want to store in the MEDIA path.
+def on_recommend_train(request):
+    user_list = json.loads(request.body.decode("utf-8"))
+    for user in user_list:
+        print(user)
+        result = train_recommendation(user['_id'])
     
-    print(type(im))
-    dir = MEDIA_ROOT + '/'+ name
+    result = encode_json(result)
+    return JsonResponse(result, safe=False)
+
+def on_recommend_predict_data(request):
+    result = save_predict_data(request.body)
+    result = encode_json(result)
+    return JsonResponse(result, safe=False)
+
+def on_recommend_predict(request):
+    user_list = json.loads(request.body.decode("utf-8"))
+    for user in user_list:
+        result = predict_recommendation(user['_id'])
     
-    with open(dir, 'wb+') as dest:
-        for chunk in im.chunks():
-            dest.write(chunk)
-    
-    # Process and save the image.
-    image = Image.open(im)
-    image = pd.imageProcess(image)
-    saveimg(image, name)
+    result = encode_json(result)
+    return JsonResponse(result, safe=False)
 
-    # Image datalization.
-    data = pd.datalization(image)
-    result = pd.CNNprediction(data)
-
-    print("Maybe... ", result)
-    return render(request, 'result.html', {'result':result, 'image':name})
-
-def saveimg(image, name):
-    # Save the image as a temporary measure.
-    path = os.path.join(MEDIA_ROOT, 'image')
-    image.save(os.path.join(path, name))
-"""
+def on_recommend_predict_result(request):
+    user_id = request.body.decode("utf-8")
+    result = fetch_predict_result(user_id)
+    result = encode_json(result)
+    return JsonResponse(result, safe=False)
