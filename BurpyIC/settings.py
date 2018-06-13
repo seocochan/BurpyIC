@@ -134,3 +134,13 @@ MODEL_DIR = os.path.join(BASE_DIR, 'model')
 
 # recommend dir
 REC_DIR = os.path.join(BASE_DIR, 'model', 'recommend')
+
+# product categories dict
+CATEGORY = {
+    '맥주': 'beer',
+    '탄산 음료': 'soda',
+    '커피': 'coffee',
+    '위스키': 'whiskey',
+    '기타 음료': 'drink',
+    '기타 주류': 'alcohol'
+}

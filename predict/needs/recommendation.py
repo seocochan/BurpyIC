@@ -2,23 +2,26 @@ import tensorflow as tf
 import numpy as np
 import sys, os
 import json, csv
-from BurpyIC.settings import REC_DIR
+from BurpyIC.settings import REC_DIR, CATEGORY
 
 def save_train_data(payload):
     parsed = json.loads(payload.decode('utf-8'))
     user_id = parsed['id']
     products_data = parsed['data']
 
-    # 저장할 디렉토리 정의 및 생성
-    train_data_path = os.path.join(REC_DIR, user_id, 'train_data.csv')
-    os.makedirs(os.path.dirname(train_data_path), exist_ok=True)
+    # 전체 상품 목록을 카테고리 별 iterate
+    for c in products_data:
+        # 저장할 디렉토리 정의 및 생성
+        train_data_path = os.path.join(REC_DIR, user_id, CATEGORY[c['category']], 'train_data.csv')
+        os.makedirs(os.path.dirname(train_data_path), exist_ok=True)
 
-    # csv 파일 생성 및 데이터 입력
-    with open(train_data_path, 'w', newline='') as file:
-        writer = csv.writer(file)
-        for item in products_data:
-            row = [item['productId'], *item['avgTaste'], item['score']]
-            writer.writerow(row)
+        # csv 파일 생성 및 데이터 입력
+        with open(train_data_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            for item in c['items']:
+                row = [item['productId'], *item['avgTaste'], item['score']]
+                writer.writerow(row)
+
     return 'train data has saved'
 
 def save_predict_data(payload):
@@ -26,16 +29,18 @@ def save_predict_data(payload):
     user_id = parsed['id']
     products_data = parsed['data']
 
-    # 저장할 디렉토리 정의 및 생성
-    predict_data_path = os.path.join(REC_DIR, user_id, 'predict_data.csv')
-    os.makedirs(os.path.dirname(predict_data_path), exist_ok=True)
+    for c in products_data:
+        # 저장할 디렉토리 정의 및 생성
+        predict_data_path = os.path.join(REC_DIR, user_id, CATEGORY[c['category']], 'predict_data.csv')
+        os.makedirs(os.path.dirname(predict_data_path), exist_ok=True)
 
-    # csv 파일 생성 및 데이터 입력
-    with open(predict_data_path, 'w', newline='') as file:
-        writer = csv.writer(file)
-        for item in products_data:
-            row = [item['productId'], *item['avgTaste']]
-            writer. writerow(row)
+        # csv 파일 생성 및 데이터 입력
+        with open(predict_data_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            for item in c['items']:
+                row = [item['productId'], *item['avgTaste']]
+                writer. writerow(row)
+
     return 'predict data has saved'
 
 def train_recommendation(user_id):
