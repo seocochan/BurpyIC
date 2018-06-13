@@ -139,7 +139,6 @@ def predict_recommendation(user_id, category):
     if os.path.exists(predict_result_path):
         with open(predict_result_path, 'r') as file:
             contents = json.load(file)
-            print('@@@@파일 내용: ', contents)
 
     with open(predict_result_path, 'w', newline='') as file:
         contents[category] = resultItems

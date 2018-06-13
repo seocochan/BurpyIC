@@ -148,5 +148,5 @@ CATEGORY = {
 # product categories list
 CATEGORY_LIST = [
     'beer', 'soda', 
-    'coffee', 'whiskey', 'drink', 'alcohol'
+    # 'coffee', 'whiskey', 'drink', 'alcohol'
 ]

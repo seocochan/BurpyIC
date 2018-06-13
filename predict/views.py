@@ -36,7 +36,7 @@ def on_recommend_train_data(request):
 def on_recommend_train(request):
     user_list = json.loads(request.body.decode("utf-8"))
     for user in user_list:
-        for category in CATEGORY_LIST:
+        for category in CATEGORY_LIST: # FIX: train 가능한 category만 순회
             result = train_recommendation(user['_id'], category)
     
     result = encode_json(result)
@@ -50,7 +50,7 @@ def on_recommend_predict_data(request):
 def on_recommend_predict(request):
     user_list = json.loads(request.body.decode("utf-8"))
     for user in user_list:
-        for category in CATEGORY_LIST:
+        for category in CATEGORY_LIST: # FIX: predict 가능한 category만 순회
             result = predict_recommendation(user['_id'], category)
         
     result = encode_json(result)
