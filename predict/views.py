@@ -7,6 +7,7 @@ from predict.needs.predict import *
 from predict.needs.recommendation import *
 from predict.needs.jsonProcess import *
 from predict.needs.exception import * 
+from BurpyIC.settings import CATEGORY_LIST
 import json
 
 def inappropriate_access(request):
@@ -35,8 +36,8 @@ def on_recommend_train_data(request):
 def on_recommend_train(request):
     user_list = json.loads(request.body.decode("utf-8"))
     for user in user_list:
-        print(user)
-        result = train_recommendation(user['_id'])
+        for category in CATEGORY_LIST:
+            result = train_recommendation(user['_id'], category)
     
     result = encode_json(result)
     return JsonResponse(result, safe=False)

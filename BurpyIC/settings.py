@@ -144,3 +144,9 @@ CATEGORY = {
     '기타 음료': 'drink',
     '기타 주류': 'alcohol'
 }
+
+# product categories list
+CATEGORY_LIST = [
+    'beer', 'soda', 
+    'coffee', 'whiskey', 'drink', 'alcohol'
+]

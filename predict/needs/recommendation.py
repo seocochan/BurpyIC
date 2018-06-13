@@ -43,11 +43,11 @@ def save_predict_data(payload):
 
     return 'predict data has saved'
 
-def train_recommendation(user_id):
+def train_recommendation(user_id, category):
     tf.set_random_seed(777) # 시드 지정
 
     # 학습 데이터 csv 읽기
-    train_data_path = os.path.join(REC_DIR, user_id, 'train_data.csv')
+    train_data_path = os.path.join(REC_DIR, user_id, category, 'train_data.csv')
     filename_queue = tf.train.string_input_producer(
         [train_data_path], shuffle=True, name='filename_queue')
     reader = tf.TextLineReader()
@@ -91,7 +91,7 @@ def train_recommendation(user_id):
         if step % 10 == 0:
             print(step, "Cost: ", cost_val, "\nIDs:\n", ID_val, "\nPrediction:\n", hy_val)
 
-    train_model_path = os.path.join(REC_DIR, user_id, 'trained_model')
+    train_model_path = os.path.join(REC_DIR, user_id, category, 'trained_model')
     saver.save(sess, train_model_path) 
 
     # 학습 데이터 큐 사용 종료
