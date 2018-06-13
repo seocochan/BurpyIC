@@ -50,8 +50,9 @@ def on_recommend_predict_data(request):
 def on_recommend_predict(request):
     user_list = json.loads(request.body.decode("utf-8"))
     for user in user_list:
-        result = predict_recommendation(user['_id'])
-    
+        for category in CATEGORY_LIST:
+            result = predict_recommendation(user['_id'], category)
+        
     result = encode_json(result)
     return JsonResponse(result, safe=False)
 

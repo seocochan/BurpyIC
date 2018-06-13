@@ -100,11 +100,11 @@ def train_recommendation(user_id, category):
     
     return 'train has done'
 
-def predict_recommendation(user_id):
-    train_model_path = os.path.join(REC_DIR, user_id, 'trained_model.meta')
-    checkpoint_path = os.path.join(REC_DIR, user_id)
-    predict_data_path = os.path.join(REC_DIR, user_id, 'predict_data.csv')
-    predict_result_path = os.path.join(REC_DIR, user_id, 'predict_result.txt')
+def predict_recommendation(user_id, category):
+    train_model_path = os.path.join(REC_DIR, user_id, category, 'trained_model.meta')
+    checkpoint_path = os.path.join(REC_DIR, user_id, category)
+    predict_data_path = os.path.join(REC_DIR, user_id, category, 'predict_data.csv')
+    predict_result_path = os.path.join(REC_DIR, user_id, category, 'predict_result.txt')
     
     # 저장된 모델 불러오기
     sess = tf.Session()
