@@ -132,14 +132,16 @@ def predict_recommendation(user_id, category):
         product_ID, score = np.squeeze(_product_ID).item(), np.squeeze(_score).item()
         resultItems.append({'id': product_ID, 'score': process_score(score)})
 
-    # 예측 결과 저장 (json)
+    # 각 상품 평점 순으로 정렬
     resultItems = sorted(resultItems, key=lambda i: i['score'], reverse=True)
+    
+    # 기존 결과가 존재하면 load
     contents = {}
-
     if os.path.exists(predict_result_path):
         with open(predict_result_path, 'r') as file:
             contents = json.load(file)
 
+    # 파일에 현재 분류의 예측 결과를 작성
     with open(predict_result_path, 'w', newline='') as file:
         contents[category] = resultItems
         json.dump(contents, file)
