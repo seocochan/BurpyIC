@@ -104,7 +104,7 @@ def predict_recommendation(user_id, category):
     train_model_path = os.path.join(REC_DIR, user_id, category, 'trained_model.meta')
     checkpoint_path = os.path.join(REC_DIR, user_id, category)
     predict_data_path = os.path.join(REC_DIR, user_id, category, 'predict_data.csv')
-    predict_result_path = os.path.join(REC_DIR, user_id, category, 'predict_result.txt')
+    predict_result_path = os.path.join(REC_DIR, user_id, 'predict_result.txt')
     
     # 저장된 모델 불러오기
     sess = tf.Session()
@@ -126,16 +126,24 @@ def predict_recommendation(user_id, category):
     predict_ID, predict_X = data[:,0:1], data[:,1:]
 
     # 예측 수행
-    results = []
+    resultItems = []
     for product, tastes in zip(predict_ID, predict_X):
         _product_ID, _score = sess.run([ID, hypothesis], feed_dict={ID: [product], X: [tastes]})
         product_ID, score = np.squeeze(_product_ID).item(), np.squeeze(_score).item()
-        results.append({'id': product_ID, 'score': process_score(score)})
+        resultItems.append({'id': product_ID, 'score': process_score(score)})
 
     # 예측 결과 저장 (json)
-    results = sorted(results, key=lambda i: i['score'], reverse=True)
+    resultItems = sorted(resultItems, key=lambda i: i['score'], reverse=True)
+    contents = {}
+
+    if os.path.exists(predict_result_path):
+        with open(predict_result_path, 'r') as file:
+            contents = json.load(file)
+            print('@@@@파일 내용: ', contents)
+
     with open(predict_result_path, 'w', newline='') as file:
-        json.dump(results, file)
+        contents[category] = resultItems
+        json.dump(contents, file)
 
     return 'predict has done'
 
