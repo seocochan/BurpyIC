@@ -57,7 +57,7 @@ def on_recommend_predict(request):
     return JsonResponse(result, safe=False)
 
 def on_recommend_predict_result(request):
-    user_id = request.body.decode("utf-8")
+    user_id = json.loads(request.body.decode("utf-8"))
     result = fetch_predict_result(user_id)
     result = encode_json(result)
     return JsonResponse(result, safe=False)
