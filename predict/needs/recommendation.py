@@ -44,6 +44,7 @@ def save_predict_data(payload):
     return 'predict data has saved'
 
 def train_recommendation(user_id, category):
+    tf.reset_default_graph() # 모델 초기화
     tf.set_random_seed(777) # 시드 지정
 
     # 학습 데이터 csv 읽기
@@ -60,43 +61,42 @@ def train_recommendation(user_id, category):
         tf.train.batch([xy[0:1], xy[1:-1], xy[-1:]], batch_size=5)
 
     # 플레이스홀더 & 변수 선언
-    ID = tf.placeholder(tf.int32, shape=[None, 1], name="ID")
-    X = tf.placeholder(tf.float32, shape=[None, 5], name="X")
-    Y = tf.placeholder(tf.float32, shape=[None, 1], name="Y")
+    ID = tf.placeholder(tf.int32, shape=[None, 1], name='ID')
+    X = tf.placeholder(tf.float32, shape=[None, 5], name='X')
+    Y = tf.placeholder(tf.float32, shape=[None, 1], name='Y')
     W = tf.Variable(tf.random_normal([5, 1]), name='weight')
     b = tf.Variable(tf.random_normal([1]), name='bias')
 
-    # 모델 저장을 위한 saver 생성
-    saver = tf.train.Saver()
-
     # 예측식 & 오차수정식 정의
-    hypothesis = tf.matmul(X, W) + b
+    hypothesis = tf.add(tf.matmul(X, W), b, name='hypo')
     cost = tf.reduce_mean(tf.square(hypothesis - Y))
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
     train = optimizer.minimize(cost)
 
-    # 학습 세션 생성
-    sess = tf.Session()
-    sess.run(tf.global_variables_initializer())
+    # 학습 세션
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        saver = tf.train.Saver()
+        train_model_path = os.path.join(REC_DIR, user_id, category, 'trained_model')
 
-    # 학습 데이터 큐 읽기 시작
-    coord = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        # 학습 데이터 큐 읽기 시작
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-    # 학습 수행
-    for step in range(2001):
-        ID_batch, x_batch, y_batch = sess.run([train_ID_batch, train_x_batch, train_y_batch])
-        ID_val, cost_val, hy_val, _ = sess.run(
-            [ID, cost, hypothesis, train], feed_dict={ID: ID_batch, X: x_batch, Y: y_batch})
-        if step % 10 == 0:
-            print(step, "Cost: ", cost_val, "\nIDs:\n", ID_val, "\nPrediction:\n", hy_val)
+        # 학습 수행
+        for step in range(5001):
+            ID_batch, x_batch, y_batch = sess.run([train_ID_batch, train_x_batch, train_y_batch])
+            ID_val, cost_val, hy_val, _ = sess.run(
+                [ID, cost, hypothesis, train], feed_dict={ID: ID_batch, X: x_batch, Y: y_batch})
+            if step % 1000 == 0:
+                print(step, "\nCost: ", cost_val, "\nIDs:\n", ID_val, "\nPrediction:\n", hy_val)
 
-    train_model_path = os.path.join(REC_DIR, user_id, category, 'trained_model')
-    saver.save(sess, train_model_path) 
+        # 모델 저장
+        saver.save(sess, train_model_path)
 
-    # 학습 데이터 큐 사용 종료
-    coord.request_stop()
-    coord.join(threads)
+        # 학습 데이터 큐 사용 종료
+        coord.request_stop()
+        coord.join(threads)
     
     return 'train has done'
 
@@ -106,35 +106,36 @@ def predict_recommendation(user_id, category):
     predict_data_path = os.path.join(REC_DIR, user_id, category, 'predict_data.csv')
     predict_result_path = os.path.join(REC_DIR, user_id, 'predict_result.txt')
     
-    # 저장된 모델 불러오기
-    sess = tf.Session()
-    saver = tf.train.import_meta_graph(train_model_path)
-    saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
-    graph = tf.get_default_graph()
-    sess.run(tf.global_variables_initializer())
+    # 예측 세션
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
 
-    # 저장된 변수들 불러오기
-    ID = graph.get_tensor_by_name("ID:0")
-    X = graph.get_tensor_by_name("X:0")
-    Y = graph.get_tensor_by_name("Y:0")
-    W = graph.get_tensor_by_name("weight:0")
-    b = graph.get_tensor_by_name("bias:0")
-    hypothesis = tf.matmul(X, W) + b
+        # 저장된 모델 불러오기
+        saver = tf.train.import_meta_graph(train_model_path)
+        saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
 
-    # 예측할 데이터 불러오기
-    data = np.loadtxt(predict_data_path, delimiter=",")
-    predict_ID, predict_X = data[:,0:1], data[:,1:]
+        # 저장된 변수들 불러오기
+        graph = tf.get_default_graph()
+        X = graph.get_tensor_by_name('X:0')
+        Y = graph.get_tensor_by_name('Y:0')
+        W = graph.get_tensor_by_name('weight:0')
+        b = graph.get_tensor_by_name('bias:0')
+        hypothesis = graph.get_tensor_by_name('hypo:0')
 
-    # 예측 수행
-    resultItems = []
-    for product, tastes in zip(predict_ID, predict_X):
-        _product_ID, _score = sess.run([ID, hypothesis], feed_dict={ID: [product], X: [tastes]})
-        product_ID, score = np.squeeze(_product_ID).item(), np.squeeze(_score).item()
-        resultItems.append({'id': product_ID, 'score': process_score(score)})
+        # 예측할 데이터 불러오기
+        data = np.loadtxt(predict_data_path, delimiter=',')
+        predict_ID, predict_X = data[:,0:1], data[:,1:]
 
-    # 각 상품 평점 순으로 정렬
-    resultItems = sorted(resultItems, key=lambda i: i['score'], reverse=True)
-    
+        # 예측 수행
+        resultItems = []
+        for product, tastes in zip(predict_ID, predict_X):
+            _score = sess.run(hypothesis, feed_dict={X: [tastes]})
+            product_ID, score = np.squeeze(product).item(), np.squeeze(_score).item()
+            resultItems.append({'id': int(product_ID), 'score': process_score(score)})
+
+        # 각 상품 평점 순으로 정렬
+        resultItems = sorted(resultItems, key=lambda i: i['score'], reverse=True)
+
     # 기존 결과가 존재하면 load
     contents = {}
     if os.path.exists(predict_result_path):

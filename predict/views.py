@@ -7,7 +7,7 @@ from predict.needs.predict import *
 from predict.needs.recommendation import *
 from predict.needs.jsonProcess import *
 from predict.needs.exception import * 
-from BurpyIC.settings import CATEGORY_LIST
+from BurpyIC.settings import CATEGORY
 import json
 
 def inappropriate_access(request):
@@ -35,9 +35,10 @@ def on_recommend_train_data(request):
 
 def on_recommend_train(request):
     user_list = json.loads(request.body.decode("utf-8"))
+
     for user in user_list:
-        for category in CATEGORY_LIST: # FIX: train 가능한 category만 순회
-            result = train_recommendation(user['_id'], category)
+        for category in user['trainable']:
+            result = train_recommendation(user['id'], CATEGORY[category])
     
     result = encode_json(result)
     return JsonResponse(result, safe=False)
@@ -49,9 +50,10 @@ def on_recommend_predict_data(request):
 
 def on_recommend_predict(request):
     user_list = json.loads(request.body.decode("utf-8"))
+    
     for user in user_list:
-        for category in CATEGORY_LIST: # FIX: predict 가능한 category만 순회
-            result = predict_recommendation(user['_id'], category)
+        for category in user['trainable']:
+            result = predict_recommendation(user['id'], CATEGORY[category])
         
     result = encode_json(result)
     return JsonResponse(result, safe=False)
